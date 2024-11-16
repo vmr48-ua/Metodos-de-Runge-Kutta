@@ -31,8 +31,15 @@ def RKII(r0,t,drdt, param ,p= 1/2) -> np.ndarray:
 def RKIV(r0,t,drdt, param) -> np.ndarray:
     '''
     Función que implementa el método de Runge-Kuta 4
-    drdt = func(t,r)
-    r0 = r(t = t[0])
+    
+    Input:
+    - r0: np.ndarray, r(t = t[0])
+    - t: np.ndarray
+    - drdt: function(t,r,param)
+    - param: np.ndarray
+    
+    Output:
+    - r: np.ndarray
     '''
 
     import numpy as np
