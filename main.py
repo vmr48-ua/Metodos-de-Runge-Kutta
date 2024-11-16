@@ -12,12 +12,19 @@ Marco Mas Sempere
 74392068V
 mmsm13@alu.ua.es
 '''
+############################
+# IMPORTACIÓN DE LIBRERÍAS #
+############################
 
+# locales
 from runge_kutta import *
 from plot_func import *
-
+# externas
 import numpy as np
 
+############################
+# DEFINICIÓN DE PARÁMETROS #
+############################
 
 L = 10.0   # Dominio espacial
 Nx = 100   # Puntos espaciales
@@ -32,5 +39,9 @@ m = 1.0    # Masa del campo
 
 x = np.linspace(0, L, Nx)
 t = np.linspace(0, T, Nt)
+
+##################
+# EDP A RESOLVER #
+##################
 
 plot(x,t)

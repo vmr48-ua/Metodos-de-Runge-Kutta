@@ -1,6 +1,6 @@
 import numpy as np
 
-def RKIIG(r0,t,drdt, param ,p= 1/2) -> np.ndarray:
+def RKIIG(r0,t,drdt, param ,p = 1/2) -> np.ndarray:
     '''
     Función que implementa el método de Runge-Kuta 2, genérico
     
@@ -14,8 +14,7 @@ def RKIIG(r0,t,drdt, param ,p= 1/2) -> np.ndarray:
     Output:
     - r: np.ndarray
     '''
-
-
+    
     import numpy as np
 
     if p == 0:
@@ -56,8 +55,7 @@ def RKIIIG(r0,t,drdt, param ,a= 1/2 ,b = 1) -> np.ndarray:
     Output:
     - r: np.ndarray
     '''
-
-
+    
     import numpy as np
 
     if a == 0 or a == 2/3 or b == 0 or a == b:
