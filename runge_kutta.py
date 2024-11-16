@@ -109,7 +109,7 @@ def RKIV(r0,t,drdt, param) -> np.ndarray:
     
     return r
 
-
+def RKVI(r0,t,drdt, param) -> np.ndarray:
     '''
     Función que implementa el método de Runge-Kuta 4
     drdt = func(t,r)
