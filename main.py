@@ -1,7 +1,21 @@
-import runge_kutta
+'''
+PRESENTACIÓN FÍSICA COMPUTACIONAL - BLOQUE I
+INTRODUCCIÓN A LA MODELIZACIÓN EN FÍSICA
+
+MÉTODOS DE RUNGE KUTTA
+
+Víctor Mira Ramírez
+74528754Z
+vmr48@alu.ua.es
+'''
+
+from runge_kutta import *
+from plot_func import *
 
 import numpy as np
-import matplotlib.pyplot as plt
+
+
+
 
 L = 10.0   # Dominio espacial
 Nx = 100   # Puntos espaciales
@@ -16,3 +30,5 @@ m = 1.0    # Masa del campo
 
 x = np.linspace(0, L, Nx)
 t = np.linspace(0, T, Nt)
+
+plot(x,t)
