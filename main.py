@@ -7,14 +7,16 @@ MÉTODOS DE RUNGE KUTTA
 Víctor Mira Ramírez
 74528754Z
 vmr48@alu.ua.es
+
+Marco Mas Sempere
+74392068V
+mmsm13@alu.ua.es
 '''
 
 from runge_kutta import *
 from plot_func import *
 
 import numpy as np
-
-
 
 
 L = 10.0   # Dominio espacial
