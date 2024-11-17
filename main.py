@@ -59,9 +59,8 @@ def diffusion(t, u, params) -> np.ndarray:
     - du_dt: np.ndarray, derivada de u con respecto al tiempo
     """
     D, dx = params
-    d2u_dx2 = np.zeros_like(u)
-    for i in range(1, len(u) - 1):
-        d2u_dx2[i] = (u[i + 1] - 2 * u[i] + u[i - 1]) / dx**2
+    d2u_dx2 = np.zeros(len(u))
+    d2u_dx2[1:-1] = (u[2:] - 2 * u[1:-1] + u[:-2]) / dx**2
     d2u_dx2[0] = d2u_dx2[-1] = 0  # Dirichlet
 
     du_dt = D * d2u_dx2
@@ -80,9 +79,8 @@ def schrodinger(t, psi, params) -> np.ndarray:
     - dpsi_dt: np.ndarray, derivada de psi con respecto al tiempo
     """
     hbar, m, dx, V = params
-    d2psi_dx2 = np.zeros_like(psi)
-    for i in range(1, len(psi) - 1):
-        d2psi_dx2[i] = (psi[i + 1] - 2 * psi[i] + psi[i - 1]) / dx**2
+    d2psi_dx2 = np.zeros(len(psi))
+    d2psi_dx2[1:-1] = (psi[2:] - 2 * psi[1:-1] + psi[:-2]) / dx**2
     d2psi_dx2[0] = d2psi_dx2[-1] = 0  # Dirichlet
 
     dpsi_dt = -1j * (hbar / (2 * m)) * d2psi_dx2 + (-1j / hbar) * V * psi
@@ -101,9 +99,8 @@ def klein_gordon(t, phi, params) -> np.ndarray:
     - dphi_dt: np.ndarray, derivada de phi con respecto al tiempo
     """
     c, m, dx = params
-    d2phi_dx2 = np.zeros_like(phi)
-    for i in range(1, len(phi) - 1):
-        d2phi_dx2[i] = (phi[i + 1] - 2 * phi[i] + phi[i - 1]) / dx**2
+    d2phi_dx2 = np.zeros(len(phi))
+    d2phi_dx2[1:-1] = (phi[2:] - 2 * phi[1:-1] + phi[:-2]) / dx**2
     d2phi_dx2[0] = d2phi_dx2[-1] = 0  # Dirichlet
 
     dphi_dt = c**2 * d2phi_dx2 - m**2 * phi
@@ -123,9 +120,8 @@ def wave_equation(t, state, params):
     """
     c, dx = params
     u, v = state
-    d2u_dx2 = np.zeros_like(u)
-    for i in range(1, len(u) - 1):
-        d2u_dx2[i] = (u[i + 1] - 2 * u[i] + u[i - 1]) / dx**2
+    d2u_dx2 = np.zeros(len(u))
+    d2u_dx2[1:-1] = (u[2:] - 2 * u[1:-1] + u[:-2]) / dx**2
     d2u_dx2[0] = d2u_dx2[-1] = 0  # Dirichlet
 
     du_dt = v
@@ -150,22 +146,32 @@ estabilidad_diff = D*dt/dx**2
 u0_diff = np.exp(-((x-L/2)**2)/(2*0.5**2)) # Gaussiana centrada en L/2
 u0_schr = ...
 ...
-...
+phi0_kg = np.exp(-((x-L/2)**2)/(2*0.5**2)) # Campo gaussiano
+
 
 # Resolución de las EDP
-
 ############
 # DIFUSIÓN #
 ############
 if estabilidad_diff >= 0.5:
-        raise Exception('Condición de estabilidad no satisfecha, prueba a bajar dt')
+        raise Exception('Condición de estabilidad no satisfecha')
 u_diff_RKII_G = RKII_G(u0_diff, t, diffusion, params_diff)
 u_diff_RKIV = RKIV(u0_diff, t, diffusion, params_diff)
+
+################
+# KLEIN-GORDON #
+################
+phi_sol = np.zeros((Nt, Nx))
+phi_sol[0, :] = phi0_kg
+
+for i in range(1, Nt):
+    dphi_dt = klein_gordon(t[i-1], phi_sol[i-1, :], params_kg)
+    phi_sol[i, :] = phi_sol[i-1, :] + dphi_dt * dt  # Integración explícita
 
 
 
 # Plots que irán en el archivo plot_func.py
-
+# Difusión
 fig, ax = plt.subplots(figsize=(7, 7), tight_layout=True)
 ax.set_aspect('equal', 'box')
 line_RKII_G, = ax.plot(x, u_diff_RKII_G[0], label='RKIIG')
@@ -182,5 +188,23 @@ def update(frame):
     return line_RKII_G, line_RKIV
 
 ani = FuncAnimation(fig, update, frames=range(0, Nt, 1), blit=True, interval=1)
+plt.show()
+
+
+
+# Klein-Gordon
+fig, ax = plt.subplots(figsize=(10, 6))
+line, = ax.plot(x, phi_sol[0], label='Campo φ')
+ax.set_xlim(0, L)
+ax.set_xlabel('x')
+ax.set_ylabel('φ(x, t)')
+ax.set_title('Evolución de la ecuación de Klein-Gordon')
+ax.legend()
+
+def update(frame):
+    line.set_ydata(phi_sol[frame])
+    return line,
+
+ani = FuncAnimation(fig, update, frames=range(0, Nt, 1), blit=True, interval=10)
 
 plt.show()
