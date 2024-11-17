@@ -94,8 +94,9 @@ def RKIV(r0, t, drdt, param) -> np.ndarray:
     dt = t[1]-t[0]
     N = len(t)
 
-    r = np.zeros((N,len(r0)))
-
+    # Si estamos en schrodinger es complejo si no es float, si es klein gordon las dimensiones
+    # cuadran si no me falta una dimensión por eso el *r0.shape
+    r = np.zeros((N, *r0.shape), dtype=np.complex128 if np.iscomplexobj(r0) else np.float64)
     r[0,:] = r0
 
     for i in range(N-1):

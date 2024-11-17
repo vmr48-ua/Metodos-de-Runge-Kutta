@@ -188,7 +188,7 @@ def update(frame):
     line_RKIV.set_ydata(u_diff_RKIV[frame])
     return line_RKII_G, line_RKIV
 
-ani = FuncAnimation(fig, update, frames=range(0, Nt, 1), blit=True, interval=1)
+ani = FuncAnimation(fig, update, frames=range(0,Nt,1), blit=True, interval=1)
 plt.show()
 
 
@@ -196,23 +196,19 @@ plt.show()
 # Klein-Gordon
 fig, ax = plt.subplots()
 ax.set_xlim(0, L)
-ax.set_ylim(-1.1 * np.max(u_kg_RKIV), 1.1 * np.max(u_kg_RKIV))
+ax.set_ylim(0, 1.1 * np.max(u_kg_RKIV))
 ax.set_xlabel("x")
 ax.set_ylabel(r"$\phi(x,t)$")
-ax.set_title("Evolución temporal del campo $\phi(x, t)$")
+ax.set_title("Evolución temporal del campo $\\phi(x, t)$")
 
-line, = ax.plot([], [], lw=2, color="blue", label="Campo $\phi(x, t)$")
-time_text = ax.text(0.8 * L, 0.9 * np.max(u_kg_RKIV), "", fontsize=12)
+line, = ax.plot([], [], label="phi(x,t) - RKIV")
+time_text = ax.text(0.8*L, 0.9*np.max(u_kg_RKIV), '', fontsize=12)
 ax.legend()
-
-def init():
-    line.set_data([], [])
-    time_text.set_text("")
-    return line, time_text
 
 def update(frame):
     line.set_data(x, u_kg_RKIV[frame])
-    time_text.set_text(f"t = {t[frame]:.2f}")
+    time_text.set_text(f"t = {np.round(t[frame],2)}")
     return line, time_text
 
-ani = FuncAnimation(fig, update, frames=Nt, init_func=init, blit=True, interval=50)
+ani = FuncAnimation(fig, update, frames=range(0,Nt,1), blit=True, interval=1)
+plt.show()
