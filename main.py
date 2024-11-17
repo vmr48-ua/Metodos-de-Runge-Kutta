@@ -86,7 +86,7 @@ def schrodinger(t, psi, params) -> np.ndarray:
     dpsi_dt = -1j * (hbar / (2 * m)) * d2psi_dx2 + (-1j / hbar) * V * psi
     return dpsi_dt
 
-def klein_gordon(t, phi, params) -> np.ndarray:
+def klein_gordon(t, state, params) -> np.ndarray:
     """
     Derivada temporal para la ecuación de Klein-Gordon.
     
@@ -99,12 +99,15 @@ def klein_gordon(t, phi, params) -> np.ndarray:
     - dphi_dt: np.ndarray, derivada de phi con respecto al tiempo
     """
     c, m, dx = params
+    phi, dphi_dt = state
     d2phi_dx2 = np.zeros(len(phi))
     d2phi_dx2[1:-1] = (phi[2:] - 2 * phi[1:-1] + phi[:-2]) / dx**2
     d2phi_dx2[0] = d2phi_dx2[-1] = 0  # Dirichlet
 
-    dphi_dt = c**2 * d2phi_dx2 - m**2 * phi
-    return dphi_dt
+    dphi_dt = dphi_dt
+    d2phi_dt2 = c**2 * d2phi_dx2 - m**2 * phi
+
+    return np.array([dphi_dt, d2phi_dt2])
 
 def wave_equation(t, state, params):    
     """
@@ -147,6 +150,7 @@ u0_diff = np.exp(-((x-L/2)**2)/(2*0.5**2)) # Gaussiana centrada en L/2
 u0_schr = ...
 ...
 phi0_kg = np.exp(-((x-L/2)**2)/(2*0.5**2)) # Campo gaussiano
+u0_kg = np.array([phi0_kg, np.zeros(Nx)])  # Estado inicial kg
 
 
 # Resolución de las EDP
@@ -161,12 +165,9 @@ u_diff_RKIV = RKIV(u0_diff, t, diffusion, params_diff)
 ################
 # KLEIN-GORDON #
 ################
-phi_sol = np.zeros((Nt, Nx))
-phi_sol[0, :] = phi0_kg
-
-for i in range(1, Nt):
-    dphi_dt = klein_gordon(t[i-1], phi_sol[i-1, :], params_kg)
-    phi_sol[i, :] = phi_sol[i-1, :] + dphi_dt * dt  # Integración explícita
+sol = RKIV(u0_kg, t, klein_gordon, params_kg)
+u_kg_RKIV = sol[:,0,:]  # Campo phi
+du_kg_RKIV = sol[:,1,:] # Velocidad dphi/dt
 
 
 
@@ -193,18 +194,25 @@ plt.show()
 
 
 # Klein-Gordon
-fig, ax = plt.subplots(figsize=(10, 6))
-line, = ax.plot(x, phi_sol[0], label='Campo φ')
+fig, ax = plt.subplots()
 ax.set_xlim(0, L)
-ax.set_xlabel('x')
-ax.set_ylabel('φ(x, t)')
-ax.set_title('Evolución de la ecuación de Klein-Gordon')
+ax.set_ylim(-1.1 * np.max(u_kg_RKIV), 1.1 * np.max(u_kg_RKIV))
+ax.set_xlabel("x")
+ax.set_ylabel(r"$\phi(x,t)$")
+ax.set_title("Evolución temporal del campo $\phi(x, t)$")
+
+line, = ax.plot([], [], lw=2, color="blue", label="Campo $\phi(x, t)$")
+time_text = ax.text(0.8 * L, 0.9 * np.max(u_kg_RKIV), "", fontsize=12)
 ax.legend()
 
+def init():
+    line.set_data([], [])
+    time_text.set_text("")
+    return line, time_text
+
 def update(frame):
-    line.set_ydata(phi_sol[frame])
-    return line,
+    line.set_data(x, u_kg_RKIV[frame])
+    time_text.set_text(f"t = {t[frame]:.2f}")
+    return line, time_text
 
-ani = FuncAnimation(fig, update, frames=range(0, Nt, 1), blit=True, interval=10)
-
-plt.show()
+ani = FuncAnimation(fig, update, frames=Nt, init_func=init, blit=True, interval=50)
