@@ -1,6 +1,6 @@
 import numpy as np
 
-def RKIIG(r0,t,drdt, param ,p = 1/2) -> np.ndarray:
+def RKII_G(r0, t, drdt, param, p = 1/2) -> np.ndarray:
     '''
     Función que implementa el método de Runge-Kuta 2, genérico
     
@@ -39,8 +39,7 @@ def RKIIG(r0,t,drdt, param ,p = 1/2) -> np.ndarray:
     
     return r
 
-
-def RKIIIG(r0,t,drdt, param ,a= 1/2 ,b = 1) -> np.ndarray:
+def RKIII_G(r0, t, drdt, param, a = 1/2 ,b = 1) -> np.ndarray:
     '''
     Función que implementa el método de Runge-Kuta 3, genérico
     
@@ -76,8 +75,7 @@ def RKIIIG(r0,t,drdt, param ,a= 1/2 ,b = 1) -> np.ndarray:
     
     return r
 
-
-def RKIV(r0,t,drdt, param) -> np.ndarray:
+def RKIV(r0, t, drdt, param) -> np.ndarray:
     '''
     Función que implementa el método de Runge-Kuta 4
     
@@ -109,7 +107,7 @@ def RKIV(r0,t,drdt, param) -> np.ndarray:
     
     return r
 
-def RKVI(r0,t,drdt, param) -> np.ndarray:
+def RKVI(r0, t, drdt, param) -> np.ndarray:
     '''
     Función que implementa el método de Runge-Kuta 4
     drdt = func(t,r)
