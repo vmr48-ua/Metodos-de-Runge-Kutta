@@ -110,9 +110,16 @@ def RKIV(r0, t, drdt, param) -> np.ndarray:
 
 def RKVI(r0, t, drdt, param) -> np.ndarray:
     '''
-    Función que implementa el método de Runge-Kuta 4
-    drdt = func(t,r)
-    r0 = r(t = t[0])
+    Función que implementa el método de Runge-Kuta 6
+    
+    Input:
+    - r0: np.ndarray, r(t = t[0])
+    - t: np.ndarray
+    - drdt: function(t,r,param)
+    - param: np.ndarray
+    
+    Output:
+    - r: np.ndarray
     '''
 
     import numpy as np
@@ -126,9 +133,15 @@ def RKVI(r0, t, drdt, param) -> np.ndarray:
 
     for i in range(N-1):
         k1 = dt*drdt(t[i],r[i],param)
-        k2 = dt*drdt(t[i] + dt/2,r[i] + k1/2,param)
-        k3 = dt*drdt(t[i] + dt/2,r[i] + k2/2,param)
-        k4 = dt*drdt(t[i] + dt,r[i] + k3,param)
-        r[i+1] = r[i] + (k1+ 2*k2 + 2*k3 + k4)/6
+        k2 = dt*drdt(t[i] + dt/3    ,r[i] + k1/3,param)
+        k3 = dt*drdt(t[i] + 2*dt/3  ,r[i] + 2*k2/6,param)
+        k4 = dt*drdt(t[i] + dt/3    ,r[i] + k1/12 + k2/3 - k3/12,param)
+        k5 = dt*drdt(t[i] + dt/2    ,r[i] - k1/16 + 9*k2/8 - (3*k3)/16 - 3*k4/8,param)
+        k6 = dt*drdt(t[i] + dt/2    ,r[i] + 9*k2/8 - 3*k3/8 - 3*k4/4 - k5/2,param)
+        k7 = dt*drdt(t[i] + dt      ,r[i] + 9*k1/44 - 9*k2/11 + 63*k3/44 + 18*k4/11 -16*k6/11)
+
+        r[i+1] = r[i] + 11*k1/120 + 27*k3/40 + 27*k4/40 - 4*k5/15 - 4*k6/15 + 11*k7/120 
     
     return r
+
+
