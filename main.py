@@ -41,9 +41,9 @@ c = 1.        # Velocidad de la onda
 m = 1.        # Masa del campo
 D = 1.        # Coeficiente de difusión
 
-n = 1         #Parametro de la condicion inicial
+n = 2         #Parametro de la condicion inicial
 
-x = np.linspace(-L/2, L/2, Nx)
+x = np.linspace(0, L, Nx)
 t = np.linspace(0, T, Nt)
 
 ##################
@@ -62,10 +62,10 @@ estabilidad_diff = D*dt/dx**2
 ...
 
 # Condiciones iniciales
-u0_diff = np.exp(-((x)**2)/(2*0.5**2)) # Gaussiana centrada en L/2
-u0_schr = np.sin(2*n*np.pi*x/L)  + 0j      # Seno con n+1 nodos
+u0_diff = np.exp(-((x-L/2)**2)/(2*0.5**2)) # Gaussiana centrada en L/2
+u0_schr = np.sin(n*np.pi*x/L)  + 0j      # Seno con n+1 nodos
 ...
-phi0_kg = np.exp(-((x)**2)/(2*0.5**2)) # Campo gaussiano
+phi0_kg = np.exp(-((x-L/2)**2)/(2*0.5**2)) # Campo gaussiano
 u0_kg = np.array([phi0_kg, np.zeros(Nx)])  # Estado inicial kg
 
 # Resolución de las EDP
@@ -90,7 +90,14 @@ du_kg_RKIV = sol_RKIV[:,1,:] # Velocidad dphi/dt
 # SCHRODINGER #
 ################
 sol_RKIV = RKIV(u0_schr, t, schrodinger, params_schr)
-u_schr_RKIV  = np.real(sol_RKIV[:,:])    # Campo phi
+u_schr_RKIV  = np.real(sol_RKIV[:,:])/np.max(np.real(sol_RKIV))    # Campo phi
+
+
+u_schr_anal = np.zeros((Nt,Nx))
+for i in range(Nt):
+    u_schr_anal[i,:] = np.sin(n*np.pi*x[:]/L)*np.cos(-((n**2)*(np.pi**2)*t[i])/(2*L**2))
+
+
 
 
 
@@ -151,13 +158,15 @@ ax.set_ylabel(r"$\phi(x,t)$")
 ax.set_title("Evolución de Schrodinger $\\phi(x, t)$")
 
 line_phi_RKIV,  = ax.plot([], [], label="phi(x,t) - RKIV")
+line_phi_anal,  = ax.plot([], [], label="phi(x,t) - analítica")
 time_text = ax.text(0.8*L, 0.8*np.max(u_schr_RKIV), '', fontsize=12)
 ax.legend()
 
 def update(frame):
     line_phi_RKIV.set_data(x, u_schr_RKIV[frame])
+    line_phi_anal.set_data(x, u_schr_anal[frame])
     time_text.set_text(f"t = {np.round(t[frame],2)}s")
-    return line_phi_RKIV, time_text
+    return line_phi_RKIV,line_phi_anal, time_text
 
 ani = FuncAnimation(fig, update, frames=range(0,Nt,5), blit=True, interval=1)
 plt.show()
