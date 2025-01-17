@@ -114,6 +114,7 @@ plt.plot(t, error2, label='error RKII_G')
 plt.plot(t, error3, label='error RKIII_G')
 plt.plot(t, error4, label='error RKIV')
 plt.plot(t, error6, label='error RKVI')
+plt.legend()
 plt.show()
 
 
@@ -173,16 +174,24 @@ ax.set_xlabel("x")
 ax.set_ylabel(r"$\phi(x,t)$")
 ax.set_title("Evolución de Schrodinger $\\phi(x, t)$")
 
+line_phi_RKII_G,  = ax.plot([], [], label="phi(x,t) - RKII_G")
+line_phi_RKIII_G,  = ax.plot([], [], label="phi(x,t) - RKIII_G")
 line_phi_RKIV,  = ax.plot([], [], label="phi(x,t) - RKIV")
+line_phi_RKVI,  = ax.plot([], [], label="phi(x,t) - RKVI")
+
 line_phi_anal,  = ax.plot([], [], label="phi(x,t) - analítica")
 time_text = ax.text(0.8*L, 0.8*np.max(u_schr_RKIV), '', fontsize=12)
 ax.legend()
 
 def update(frame):
+    line_phi_RKII_G.set_data(x, u_schr_RKII_G[frame])
+    line_phi_RKIII_G.set_data(x, u_schr_RKIII_G[frame])
     line_phi_RKIV.set_data(x, u_schr_RKIV[frame])
+    line_phi_RKVI.set_data(x, u_schr_RKVI[frame])
+
     line_phi_anal.set_data(x, u_schr_anal[frame])
     time_text.set_text(f"t = {np.round(t[frame],2)}s")
-    return line_phi_RKIV,line_phi_anal, time_text
+    return line_phi_RKII_G, line_phi_RKIII_G, line_phi_RKIV, line_phi_RKVI, line_phi_anal, time_text
 
 ani = FuncAnimation(fig, update, frames=range(0,Nt,5), blit=True, interval=1)
 plt.show()
