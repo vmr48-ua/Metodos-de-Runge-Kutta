@@ -31,6 +31,7 @@ def RKII_G(r0, t, drdt, param, p = 1/2) -> np.ndarray:
     if p == 0:
         raise ValueError('Incorrect value of p, p=0')
 
+    
     a1 = 1- p
     a2 = p
     
@@ -42,13 +43,14 @@ def RKII_G(r0, t, drdt, param, p = 1/2) -> np.ndarray:
     r = np.zeros((N, *r0.shape), dtype=np.complex128 if np.iscomplexobj(r0) else np.float64)
 
     r[0,:] = r0
-
+    
     for i in range(N-1):
         progress(i,N-1)
         k1 = dt*drdt(t[i],r[i],param)
         k2 = dt*drdt(t[i] + c*dt,r[i] + c*k1,param)
         r[i+1] = r[i] + a1*k1 + a2*k2
     
+        
     return r
 
 def RKIII_G(r0, t, drdt, param, a = 1/2 ,b = 1) -> np.ndarray:

@@ -31,11 +31,11 @@ from matplotlib.animation import FuncAnimation
 ############################
 
 L = 5.        # Dominio espacial
-Nx = 150      # Puntos espaciales
+Nx = 100      # Puntos espaciales
 dx = L/Nx     # Paso espacial
 
-T = 5.        # Tiempo total
-Nt = int(2e4) # Puntos temporales
+T = 2.5        # Tiempo total
+Nt = int(1e5) # Puntos temporales
 dt = T/Nt     # Paso temporal
 
 c = 1.        # Velocidad de la onda
@@ -95,10 +95,10 @@ sol_RKII_G = RKII_G(u0_schr, t, schrodinger, params_schr)
 sol_RKIII_G = RKIII_G(u0_schr, t, schrodinger, params_schr)
 sol_RKVI = RKVI(u0_schr, t, schrodinger, params_schr)
 
-u_schr_RKIV  = np.real(sol_RKIV[:,:])/np.max(np.real(sol_RKIV))    # Campo phi
-u_schr_RKII_G  = np.real(sol_RKII_G[:,:])/np.max(np.real(sol_RKII_G))    # Campo phi
-u_schr_RKIII_G  = np.real(sol_RKIII_G[:,:])/np.max(np.real(sol_RKIII_G))    # Campo phi
-u_schr_RKVI  = np.real(sol_RKVI[:,:])/np.max(np.real(sol_RKVI))    # Campo phi
+u_schr_RKIV  = np.real(sol_RKIV[:,:])    # Campo phi
+u_schr_RKII_G  = np.real(sol_RKII_G[:,:])   # Campo phi
+u_schr_RKIII_G  = np.real(sol_RKIII_G[:,:]) # Campo phi
+u_schr_RKVI  = np.real(sol_RKVI[:,:])   # Campo phi
 
 u_schr_anal = np.zeros((Nt,Nx))
 for i in range(Nt):
@@ -191,7 +191,7 @@ def update(frame):
 
     line_phi_anal.set_data(x, u_schr_anal[frame])
     time_text.set_text(f"t = {np.round(t[frame],2)}s")
-    return line_phi_RKII_G, line_phi_RKIII_G, line_phi_RKIV, line_phi_RKVI, line_phi_anal, time_text
+    return line_phi_RKII_G,line_phi_RKIII_G, line_phi_RKIV, line_phi_RKVI, line_phi_anal, time_text
 
-ani = FuncAnimation(fig, update, frames=range(0,Nt,5), blit=True, interval=1)
+ani = FuncAnimation(fig, update, frames=range(0,Nt,10), blit=True, interval=1)
 plt.show()
