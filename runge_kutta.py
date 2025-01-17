@@ -83,8 +83,8 @@ def RKIII_G(r0, t, drdt, param, a = 1/2 ,b = 1) -> np.ndarray:
         progress(i,N-1)
         k1 = dt*drdt(t[i],r[i],param)
         k2 = dt*drdt(t[i] + a*dt,r[i] + a*k1,param)
-        k3 = dt*drdt(t[i] + b*dt,r[i] + ((b*(b-3*a(1-a)))/(a*(3*a-2)))*k1 + ((-b*(b-a))/(a*(3*a-2)))*k2,param)
-        r[i+1] = r[i] + (1-(3*a+3*b -2 )/(6*a*b))*k1 + ((3*b-1)/(6*a*(b-a)))*k2 + ((2-3*a)/(6*b(b-a)))*k3
+        k3 = dt*drdt(t[i] + b*dt,r[i] + ((b*(b-3*a*(1-a)))/(a*(3*a-2)))*k1 + ((-b*(b-a))/(a*(3*a-2)))*k2,param)
+        r[i+1] = r[i] + (1-(3*a+3*b -2 )/(6*a*b))*k1 + ((3*b-1)/(6*a*(b-a)))*k2 + ((2-3*a)/(6*b*(b-a)))*k3
     
     return r
 
@@ -152,7 +152,7 @@ def RKVI(r0, t, drdt, param) -> np.ndarray:
         k4 = dt*drdt(t[i] + dt/3    ,r[i] + k1/12 + k2/3 - k3/12,param)
         k5 = dt*drdt(t[i] + dt/2    ,r[i] - k1/16 + 9*k2/8 - (3*k3)/16 - 3*k4/8,param)
         k6 = dt*drdt(t[i] + dt/2    ,r[i] + 9*k2/8 - 3*k3/8 - 3*k4/4 - k5/2,param)
-        k7 = dt*drdt(t[i] + dt      ,r[i] + 9*k1/44 - 9*k2/11 + 63*k3/44 + 18*k4/11 -16*k6/11)
+        k7 = dt*drdt(t[i] + dt      ,r[i] + 9*k1/44 - 9*k2/11 + 63*k3/44 + 18*k4/11 -16*k6/11,param)
 
         r[i+1] = r[i] + 11*k1/120 + 27*k3/40 + 27*k4/40 - 4*k5/15 - 4*k6/15 + 11*k7/120 
     
