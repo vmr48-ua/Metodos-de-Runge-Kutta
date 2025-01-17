@@ -33,7 +33,7 @@ def schrodinger(t, psi, params) -> np.ndarray:
     - dpsi_dt: np.ndarray, derivada de psi con respecto al tiempo
     """
     hbar, m, dx, V = params
-    d2psi_dx2 = np.zeros(len(psi))
+    d2psi_dx2 = np.zeros(len(psi), dtype=np.complex128)
     d2psi_dx2[1:-1] = (psi[2:] - 2 * psi[1:-1] + psi[:-2]) / dx**2
     d2psi_dx2[0] = d2psi_dx2[-1] = 0  # Dirichlet
 

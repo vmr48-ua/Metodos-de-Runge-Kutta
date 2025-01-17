@@ -43,7 +43,7 @@ D = 1.        # Coeficiente de difusión
 
 n = 1         #Parametro de la condicion inicial
 
-x = np.linspace(0, L, Nx)
+x = np.linspace(-L/2, L/2, Nx)
 t = np.linspace(0, T, Nt)
 
 ##################
@@ -52,7 +52,7 @@ t = np.linspace(0, T, Nt)
 # Parámetros de las EDP
 params_diff = (D, dx)
 params_kg = (c, m, dx)
-params_sch = (1.0, m, dx, np.zeros(Nx))  # Potencial V(x) = 0
+params_schr = (1.0, m, dx, np.zeros(Nx))  # Potencial V(x) = 0
 params_wave = (c, dx)
 
 # Condiciones de estabilidad
@@ -62,10 +62,10 @@ estabilidad_diff = D*dt/dx**2
 ...
 
 # Condiciones iniciales
-u0_diff = np.exp(-((x-L/2)**2)/(2*0.5**2)) # Gaussiana centrada en L/2
-u0_schr = np.sin(2*n*np.pi*x/L)            # Seno con n+1 nodos
+u0_diff = np.exp(-((x)**2)/(2*0.5**2)) # Gaussiana centrada en L/2
+u0_schr = np.sin(2*n*np.pi*x/L)  + 0j      # Seno con n+1 nodos
 ...
-phi0_kg = np.exp(-((x-L/2)**2)/(2*0.5**2)) # Campo gaussiano
+phi0_kg = np.exp(-((x)**2)/(2*0.5**2)) # Campo gaussiano
 u0_kg = np.array([phi0_kg, np.zeros(Nx)])  # Estado inicial kg
 
 # Resolución de las EDP
@@ -84,6 +84,16 @@ sol_RKIV = RKIV(u0_kg, t, klein_gordon, params_kg)
 u_kg_RKIV  = sol_RKIV[:,0,:] # Campo phi
 du_kg_RKIV = sol_RKIV[:,1,:] # Velocidad dphi/dt
 
+
+
+################
+# SCHRODINGER #
+################
+sol_RKIV = RKIV(u0_schr, t, schrodinger, params_schr)
+u_schr_RKIV  = np.real(sol_RKIV[:,:])    # Campo phi
+
+
+
 # Plots que irán en el archivo plot_func.py
 
 # Difusión
@@ -91,7 +101,7 @@ fig, ax = plt.subplots(figsize=(7, 7))
 plt.tight_layout()
 line_RKII_G, = ax.plot(x, u_diff_RKII_G[0], label='RKIIG')
 line_RKIV, = ax.plot(x, u_diff_RKIV[0], label='RKIV')
-ax.set_xlim(0, L)
+ax.set_xlim(np.min(x), np.max(x))
 ax.set_xlabel('x')
 ax.set_ylabel('u(x, t)')
 ax.set_title('Evolución temporal de la Ecuación de Difusión')
@@ -109,7 +119,7 @@ plt.show()
 
 # Klein-Gordon
 fig, ax = plt.subplots()
-ax.set_xlim(0, L)
+ax.set_xlim(np.min(x), np.max(x))
 ax.set_ylim(-1.1*np.abs(np.min(du_kg_RKIV)), 1.1*np.abs(np.max(du_kg_RKIV)))
 ax.set_xlabel("x")
 ax.set_ylabel(r"$\phi(x,t)$")
@@ -132,23 +142,22 @@ plt.show()
 
 
 # Schrodinger
+
 fig, ax = plt.subplots()
-ax.set_xlim(0, L)
-ax.set_ylim(-1.1*np.abs(np.min(du_kg_RKIV)), 1.1*np.abs(np.max(du_kg_RKIV)))
+ax.set_xlim(np.min(x), np.max(x))
+ax.set_ylim(-1.1*np.abs(np.min(u_schr_RKIV)), 1.1*np.abs(np.max(u_schr_RKIV)))
 ax.set_xlabel("x")
 ax.set_ylabel(r"$\phi(x,t)$")
-ax.set_title("Evolución temporal del campo $\\phi(x, t)$")
+ax.set_title("Evolución de Schrodinger $\\phi(x, t)$")
 
 line_phi_RKIV,  = ax.plot([], [], label="phi(x,t) - RKIV")
-line_dphi_RKIV, = ax.plot([], [], label="dphi(x,t)/dt - RKIV")
-time_text = ax.text(0.8*L, 0.8*np.max(u_kg_RKIV), '', fontsize=12)
+time_text = ax.text(0.8*L, 0.8*np.max(u_schr_RKIV), '', fontsize=12)
 ax.legend()
 
 def update(frame):
-    line_phi_RKIV.set_data(x, u_kg_RKIV[frame])
-    line_dphi_RKIV.set_data(x, du_kg_RKIV[frame])
+    line_phi_RKIV.set_data(x, u_schr_RKIV[frame])
     time_text.set_text(f"t = {np.round(t[frame],2)}s")
-    return line_phi_RKIV, line_dphi_RKIV, time_text
+    return line_phi_RKIV, time_text
 
 ani = FuncAnimation(fig, update, frames=range(0,Nt,5), blit=True, interval=1)
 plt.show()
