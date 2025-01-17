@@ -1,14 +1,15 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+import numpy.linalg as la
 """
 Vamos a calcular el error de la solución analítica de 
 la ecuación de Schrödinger frente a la solución numérica
 que proporcionan los distintos métodos de Runge-Kutta.
 """
 
-def error():
-    return ...
+def error_schr(psi_analitica, psi_numerica, dx):
+    return la.norm(psi_analitica - psi_numerica,axis=1)*dx
 
 def timear(funcion, param):
     """ 

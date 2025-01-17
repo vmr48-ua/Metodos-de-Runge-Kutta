@@ -20,6 +20,7 @@ mmsm13@alu.ua.es
 from runge_kutta import *
 from plot_func import *
 from edp import *
+from eficiencia import *
 # externas
 import numpy as np
 import matplotlib.pyplot as plt
@@ -90,15 +91,30 @@ du_kg_RKIV = sol_RKIV[:,1,:] # Velocidad dphi/dt
 # SCHRODINGER #
 ################
 sol_RKIV = RKIV(u0_schr, t, schrodinger, params_schr)
-u_schr_RKIV  = np.real(sol_RKIV[:,:])/np.max(np.real(sol_RKIV))    # Campo phi
+sol_RKII_G = RKII_G(u0_schr, t, schrodinger, params_schr)
+sol_RKIII_G = RKIII_G(u0_schr, t, schrodinger, params_schr)
+sol_RKVI = RKVI(u0_schr, t, schrodinger, params_schr)
 
+u_schr_RKIV  = np.real(sol_RKIV[:,:])/np.max(np.real(sol_RKIV))    # Campo phi
+u_schr_RKII_G  = np.real(sol_RKII_G[:,:])/np.max(np.real(sol_RKII_G))    # Campo phi
+u_schr_RKIII_G  = np.real(sol_RKIII_G[:,:])/np.max(np.real(sol_RKIII_G))    # Campo phi
+u_schr_RKVI  = np.real(sol_RKVI[:,:])/np.max(np.real(sol_RKVI))    # Campo phi
 
 u_schr_anal = np.zeros((Nt,Nx))
 for i in range(Nt):
     u_schr_anal[i,:] = np.sin(n*np.pi*x[:]/L)*np.cos(-((n**2)*(np.pi**2)*t[i])/(2*L**2))
 
+error2 = error_schr(u_schr_anal, u_schr_RKII_G, dx)
+error3 = error_schr(u_schr_anal, u_schr_RKIII_G, dx)
+error4 = error_schr(u_schr_anal, u_schr_RKIV, dx)
+error6 = error_schr(u_schr_anal, u_schr_RKVI, dx)
 
-
+plt.figure()
+plt.plot(t, error2, label='error RKII_G')
+plt.plot(t, error3, label='error RKIII_G')
+plt.plot(t, error4, label='error RKIV')
+plt.plot(t, error6, label='error RKVI')
+plt.show()
 
 
 # Plots que irán en el archivo plot_func.py
