@@ -86,3 +86,4 @@ def wave_equation(t, state, params) -> np.ndarray:
 
     dstate_dt = np.array([du_dt, dv_dt])
     return dstate_dt
+

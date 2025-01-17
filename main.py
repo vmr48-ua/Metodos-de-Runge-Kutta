@@ -37,9 +37,11 @@ T = 5.        # Tiempo total
 Nt = int(2e4) # Puntos temporales
 dt = T/Nt     # Paso temporal
 
-c = 2.        # Velocidad de la onda
-m = 3.        # Masa del campo
+c = 1.        # Velocidad de la onda
+m = 1.        # Masa del campo
 D = 1.        # Coeficiente de difusión
+
+n = 1         #Parametro de la condicion inicial
 
 x = np.linspace(0, L, Nx)
 t = np.linspace(0, T, Nt)
@@ -61,7 +63,7 @@ estabilidad_diff = D*dt/dx**2
 
 # Condiciones iniciales
 u0_diff = np.exp(-((x-L/2)**2)/(2*0.5**2)) # Gaussiana centrada en L/2
-u0_schr = ...
+u0_schr = np.sin(2*n*np.pi*x/L)            # Seno con n+1 nodos
 ...
 phi0_kg = np.exp(-((x-L/2)**2)/(2*0.5**2)) # Campo gaussiano
 u0_kg = np.array([phi0_kg, np.zeros(Nx)])  # Estado inicial kg
@@ -83,6 +85,7 @@ u_kg_RKIV  = sol_RKIV[:,0,:] # Campo phi
 du_kg_RKIV = sol_RKIV[:,1,:] # Velocidad dphi/dt
 
 # Plots que irán en el archivo plot_func.py
+
 # Difusión
 fig, ax = plt.subplots(figsize=(7, 7))
 plt.tight_layout()
@@ -105,6 +108,30 @@ plt.show()
 
 
 # Klein-Gordon
+fig, ax = plt.subplots()
+ax.set_xlim(0, L)
+ax.set_ylim(-1.1*np.abs(np.min(du_kg_RKIV)), 1.1*np.abs(np.max(du_kg_RKIV)))
+ax.set_xlabel("x")
+ax.set_ylabel(r"$\phi(x,t)$")
+ax.set_title("Evolución temporal del campo $\\phi(x, t)$")
+
+line_phi_RKIV,  = ax.plot([], [], label="phi(x,t) - RKIV")
+line_dphi_RKIV, = ax.plot([], [], label="dphi(x,t)/dt - RKIV")
+time_text = ax.text(0.8*L, 0.8*np.max(u_kg_RKIV), '', fontsize=12)
+ax.legend()
+
+def update(frame):
+    line_phi_RKIV.set_data(x, u_kg_RKIV[frame])
+    line_dphi_RKIV.set_data(x, du_kg_RKIV[frame])
+    time_text.set_text(f"t = {np.round(t[frame],2)}s")
+    return line_phi_RKIV, line_dphi_RKIV, time_text
+
+ani = FuncAnimation(fig, update, frames=range(0,Nt,5), blit=True, interval=1)
+plt.show()
+
+
+
+# Schrodinger
 fig, ax = plt.subplots()
 ax.set_xlim(0, L)
 ax.set_ylim(-1.1*np.abs(np.min(du_kg_RKIV)), 1.1*np.abs(np.max(du_kg_RKIV)))
