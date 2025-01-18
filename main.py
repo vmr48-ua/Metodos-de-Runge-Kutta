@@ -29,23 +29,25 @@ from matplotlib.animation import FuncAnimation
 ############################
 # DEFINICIÓN DE PARÁMETROS #
 ############################
+global T, Nx, x
 
-L = 25.        # Dominio espacial
+L = 15.        # Dominio espacial
 Nx = 200      # Puntos espaciales
-dx = L/Nx     # Paso espacial
+dx = L/(Nx-1)     # Paso espacial
 
 T = 10.       # Tiempo total
-Nt = int(5e5) # Puntos temporales
-dt = T/Nt     # Paso temporal
+Nt0 = int(1e5) # Puntos temporales
+Nt_vec = np.array([100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000])
+dt = T/(Nt0-1)     # Paso temporal
 
 c = 1.        # Velocidad de la onda
 m = 1.        # Masa del campo
-D = 0.07      # Coeficiente de difusión
+D = 0.03      # Coeficiente de difusión
 
 n = 4         # Parametro de la condicion inicial
 
 x = np.linspace(0, L, Nx)
-t = np.linspace(0, T, Nt)
+t0 = np.linspace(0, T, Nt0)
 
 ##################
 # EDP A RESOLVER #
@@ -63,7 +65,7 @@ estabilidad_diff = D*dt/dx**2
 ...
 
 # Condiciones iniciales
-u0_diff = 1000*(4*pi*D)**(-0.5)*(exp(-((x-L/3)**2)/(4*D)) + 5*exp(-((x-2*L/3)**2)/(4*D))) # Gausianas 
+u0_diff = (4*pi*D)**(-0.5)*(exp(-((x-L/3)**2)/(4*D)) + 5*exp(-((x-2*L/3)**2)/(4*D))) # Gausianas 
 u0_schr = sin(n*np.pi*x/L)  + 0j        # Seno con n+1 nodos
 ...
 phi0_kg = exp(-((x-L/2)**2)/(2*0.5**2)) # Campo gaussiano
@@ -73,17 +75,24 @@ u0_kg = np.array([phi0_kg, np.zeros(Nx)])  # Estado inicial kg
 ############
 # DIFUSIÓN #
 ############
-if estabilidad_diff >= 0.5:
-    raise Exception('Condición de estabilidad no satisfecha')
-u_diff_RKII_G, t_RKII_G = timear(RKII_G,(u0_diff, t, diffusion, params_diff))
-u_diff_RKIII_G, t_RKIII_G = timear(RKIII_G,(u0_diff, t, diffusion, params_diff))
-u_diff_RKIV, t_RKIV = timear(RKIV,(u0_diff, t, diffusion, params_diff))
-u_diff_RKVI, t_RKVI = timear(RKVI,(u0_diff, t, diffusion, params_diff))
+# if estabilidad_diff >= 0.5:
+#     raise Exception('Condición de estabilidad no satisfecha')
+u_diff_RKII_G, t_RKII_G = timear(RKII_G,(u0_diff, t0, diffusion, params_diff))
+u_diff_RKIII_G, t_RKIII_G = timear(RKIII_G,(u0_diff, t0, diffusion, params_diff))
+u_diff_RKIV, t_RKIV = timear(RKIV,(u0_diff, t0, diffusion, params_diff))
+u_diff_RKVI, t_RKVI = timear(RKVI,(u0_diff, t0, diffusion, params_diff))
 
-u_diff_anal = np.zeros((Nt,Nx))
-for i in range(Nt):
-    u_diff_anal[i,:] = 1000*(4*pi*(t[i]+1)*D)**(-0.5)*(exp(-((x-L/3)**2)/(4*D*(t[i]+1))) + 5*exp(-((x-2*L/3)**2)/(4*D*(t[i]+1))))
+u_diff_anal = np.zeros((Nt0,Nx))
+for i in range(Nt0):
+    u_diff_anal[i,:] = (4*pi*(t0[i]+1)*D)**(-0.5)*(exp(-((x-L/3)**2)/(4*D*(t0[i]+1))) + 5*exp(-((x-2*L/3)**2)/(4*D*(t0[i]+1))))
     
+def diff_anal(Nt):
+    t = np.linspace(0, T, Nt)
+    u_diff_anal = np.zeros((Nt,Nx))
+    for i in range(Nt):
+        u_diff_anal[i,:] = (4*pi*(t[i]+1)*D)**(-0.5)*(exp(-((x-L/3)**2)/(4*D*(t[i]+1))) + 5*exp(-((x-2*L/3)**2)/(4*D*(t[i]+1))))
+    return u_diff_anal
+
 error2 = error(u_diff_anal, u_diff_RKII_G, dx)[1:]    
 error3 = error(u_diff_anal, u_diff_RKIII_G, dx)[1:]
 error4 = error(u_diff_anal, u_diff_RKIV, dx)[1:]
@@ -95,10 +104,10 @@ error4_max = np.max(error4)
 error6_max = np.max(error6)
 
 fig, ax = plt.subplots()
-ax.plot(t[1:], error2, label='RKII_G')
-ax.plot(t[1:], error3, label='RKIII_G')
-ax.plot(t[1:], error4, label='RKIV')
-ax.plot(t[1:], error6, label='RKVI')
+ax.plot(t0[1:], error2, label='RKII_G')
+ax.plot(t0[1:], error3, label='RKIII_G')
+ax.plot(t0[1:], error4, label='RKIV')
+ax.plot(t0[1:], error6, label='RKVI')
 ax.set_xlabel('t')
 ax.semilogx(), ax.semilogy()
 ax.set_ylim(0.8*np.min(error6), 1.2*np.max(error2))
@@ -115,6 +124,25 @@ ax.scatter(t_RKVI, error6_max, label='RKVI', marker='x')
 ax.set_xlabel('Tiempo de ejecución')
 ax.set_ylabel('Error máximo')
 ax.semilogx(), ax.semilogy()
+ax.set_title('Error de la solución numérica frente a la analítica')
+ax.legend()
+plt.show()
+
+rk2, rk3, rk4, rk6 = [], [], [], []
+for Nt in Nt_vec:
+    u_diff_anal0 = diff_anal(Nt)
+    rk2.append(np.max(error(u_diff_anal0, RKII_G(u0_diff, np.linspace(0, T, Nt), diffusion, params_diff), dx)))
+    rk3.append(np.max(error(u_diff_anal0, RKIII_G(u0_diff, np.linspace(0, T, Nt), diffusion, params_diff), dx)))
+    rk4.append(np.max(error(u_diff_anal0, RKIV(u0_diff, np.linspace(0, T, Nt), diffusion, params_diff), dx)))
+    rk6.append(np.max(error(u_diff_anal0, RKVI(u0_diff, np.linspace(0, T, Nt), diffusion, params_diff), dx)))
+fig, ax = plt.subplots()
+ax.plot(T/(Nt_vec-1), rk2, label=f'RKII_G')
+ax.plot(T/(Nt_vec-1), rk3, label=f'RKIII_G')
+ax.plot(T/(Nt_vec-1), rk4, label=f'RKIV ')
+ax.plot(T/(Nt_vec-1), rk6, label=f'RKVI')
+ax.semilogx(), ax.semilogy()
+ax.set_xlabel('dt')
+ax.set_ylabel('Error')
 ax.set_title('Error de la solución numérica frente a la analítica')
 ax.legend()
 plt.show()
@@ -164,7 +192,7 @@ def update(frame):
     line_anal.set_ydata(u_diff_anal[frame])
     return line_RKII_G, line_RKIII_G, line_RKIV, line_RKVI, line_anal
 
-ani = FuncAnimation(fig, update, frames=range(0,Nt,100), blit=True, interval=1)
+ani = FuncAnimation(fig, update, frames=range(0,Nt0,1), blit=True, interval=50)
 plt.show()
 
 
