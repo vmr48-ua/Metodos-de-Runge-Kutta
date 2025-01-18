@@ -1,4 +1,11 @@
 import numpy as np
+import matplotlib.pyplot as plt
+from numpy import pi, exp, sin, cos
+from matplotlib.animation import FuncAnimation
+
+# Locales
+from runge_kutta import *
+from edp import *
 
 def diffusion(t, u, params) -> np.ndarray:
     """
@@ -19,6 +26,125 @@ def diffusion(t, u, params) -> np.ndarray:
 
     du_dt = D * d2u_dx2
     return du_dt
+def diffusion_total(L, T, Nx, Nt, D, u0_diff, params_diff, Nt_vec, anim=True):
+    def animation():
+        fig, ax = plt.subplots(figsize=(7, 7))
+        plt.tight_layout()
+        line_RKII_G, = ax.plot(x, u_diff_RKII_G[0], label='RKIIG')
+        line_RKIII_G, = ax.plot(x, u_diff_RKIII_G[0], label='RKIIIG')
+        line_RKIV, = ax.plot(x, u_diff_RKIV[0], label='RKIV')
+        line_RKVI, = ax.plot(x, u_diff_RKVI[0], label='RKVI')
+        line_anal, = ax.plot(x, u_diff_anal[0], label='Analítica')
+        time_text = ax.text(0.8*L, 0.8*np.max(u_diff_anal[0]), '', fontsize=12)
+        ax.set_xlim(np.min(x), np.max(x))
+        ax.set_xlabel('x')
+        ax.set_ylabel('u(x, t)')
+        ax.set_title('Animación Difusión')
+        ax.legend()
+
+        def update(frame):
+            line_RKII_G.set_ydata(u_diff_RKII_G[frame])
+            line_RKIII_G.set_ydata(u_diff_RKIII_G[frame])
+            line_RKIV.set_ydata(u_diff_RKIV[frame])
+            line_RKVI.set_ydata(u_diff_RKVI[frame])
+            line_anal.set_ydata(u_diff_anal[frame])
+            time_text.set_text(f"t = {np.round(t[frame],2)}s")
+            return line_RKII_G, line_RKIII_G, line_RKIV, line_RKVI, line_anal, time_text
+
+        ani = FuncAnimation(fig, update, frames=range(0,Nt,10), blit=True, interval=1)
+        plt.show()
+    
+    x = np.linspace(0, L, Nx)
+    dx = L/(Nx-1)
+
+    t = np.linspace(0, T, Nt)
+    dt = T/(Nt-1)
+    
+    # if estabilidad_diff >= 0.5:
+    #     raise Exception('Condición de estabilidad no satisfecha')
+    
+    u_diff_RKII_G, t_RKII_G = timear(RKII_G,(u0_diff, t, diffusion, params_diff))
+    u_diff_RKIII_G, t_RKIII_G = timear(RKIII_G,(u0_diff, t, diffusion, params_diff))
+    u_diff_RKIV, t_RKIV = timear(RKIV,(u0_diff, t, diffusion, params_diff))
+    u_diff_RKVI, t_RKVI = timear(RKVI,(u0_diff, t, diffusion, params_diff))
+
+    u_diff_anal = np.zeros((Nt,Nx))
+    for i in range(Nt):
+        u_diff_anal[i,:] = (4*pi*(t[i]+1)*D)**(-0.5)*(exp(-((x-L/3)**2)/(4*D*(t[i]+1))) + 5*exp(-((x-2*L/3)**2)/(4*D*(t[i]+1))))
+        
+    def diff_anal(Nt):
+        t = np.linspace(0, T, Nt)
+        u_diff_anal = np.zeros((Nt,Nx))
+        for i in range(Nt):
+            u_diff_anal[i,:] = (4*pi*(t[i]+1)*D)**(-0.5)*(exp(-((x-L/3)**2)/(4*D*(t[i]+1))) + 5*exp(-((x-2*L/3)**2)/(4*D*(t[i]+1))))
+        return u_diff_anal
+
+
+    ########################################################################################3
+    # EVOLUCIÓN DEL ERROR
+    ########################################################################################3
+    error2 = error(u_diff_anal, u_diff_RKII_G, dx)[1:]    
+    error3 = error(u_diff_anal, u_diff_RKIII_G, dx)[1:]
+    error4 = error(u_diff_anal, u_diff_RKIV, dx)[1:]
+    error6 = error(u_diff_anal, u_diff_RKVI, dx)[1:]
+
+    error2_max = np.max(error2)
+    error3_max = np.max(error3)
+    error4_max = np.max(error4)
+    error6_max = np.max(error6)
+
+    fig, ax = plt.subplots()
+    ax.plot(t[1:], error2, label='RKII_G')
+    ax.plot(t[1:], error3, label='RKIII_G')
+    ax.plot(t[1:], error4, label='RKIV')
+    ax.plot(t[1:], error6, label='RKVI')
+    ax.set_xlabel('t')
+    ax.semilogx(), ax.semilogy()
+    ax.set_ylim(0.8*np.min(error6), 1.2*np.max(error2))
+    ax.set_ylabel('Error')
+    ax.set_title('Difusión: evolución del error')
+    ax.legend()
+    plt.show()
+
+    ########################################################################################3
+    # EVOLUCIÓN TIEMPO EJECUCIÓN
+    ########################################################################################3
+    fig, ax = plt.subplots()
+    ax.scatter(t_RKII_G, error2_max, label='RKII_G', marker='x')
+    ax.scatter(t_RKIII_G, error3_max, label='RKIII_G', marker='x')
+    ax.scatter(t_RKIV, error4_max, label='RKIV', marker='x')
+    ax.scatter(t_RKVI, error6_max, label='RKVI', marker='x')
+    ax.set_xlabel('Tiempo de ejecución')
+    ax.set_ylabel('Error máximo')
+    ax.semilogx()
+    ax.set_title('Difusión: error en función del tiempo de ejecución')
+    ax.legend()
+    plt.show()
+
+    ########################################################################################3
+    # EVOLUCIÓN DT
+    ########################################################################################3
+    rk2, rk3, rk4, rk6 = [], [], [], []
+    for Nt0 in Nt_vec:
+        u_diff_anal0 = diff_anal(Nt0)
+        rk2.append(np.max(error(u_diff_anal0, RKII_G(u0_diff, np.linspace(0, T, Nt0), diffusion, params_diff), dx)))
+        rk3.append(np.max(error(u_diff_anal0, RKIII_G(u0_diff, np.linspace(0, T, Nt0), diffusion, params_diff), dx)))
+        rk4.append(np.max(error(u_diff_anal0, RKIV(u0_diff, np.linspace(0, T, Nt0), diffusion, params_diff), dx)))
+        rk6.append(np.max(error(u_diff_anal0, RKVI(u0_diff, np.linspace(0, T, Nt0), diffusion, params_diff), dx)))
+    fig, ax = plt.subplots()
+    ax.plot(T/(Nt_vec-1), rk2, label=f'RKII_G')
+    ax.plot(T/(Nt_vec-1), rk3, label=f'RKIII_G')
+    ax.plot(T/(Nt_vec-1), rk4, label=f'RKIV ')
+    ax.plot(T/(Nt_vec-1), rk6, label=f'RKVI')
+    ax.semilogx(), ax.semilogy()
+    ax.set_xlabel('dt')
+    ax.set_ylabel('Error')
+    ax.set_title('Difusión: error en función del dt')
+    ax.legend()
+    plt.show()
+
+    if anim:
+        animation()
 
 def schrodinger(t, psi, params) -> np.ndarray:
     """
@@ -39,6 +165,124 @@ def schrodinger(t, psi, params) -> np.ndarray:
 
     dpsi_dt = -1j * (hbar / (2 * m)) * d2psi_dx2 + (-1j / hbar) * V * psi
     return dpsi_dt
+def schrodinger_total(L, T, Nx, Nt, n, u0_schr, params_schr, Nt_vec, anim=True):
+    def animation():
+        fig, ax = plt.subplots()
+        ax.set_xlim(np.min(x), np.max(x))
+        ax.set_ylim(-1.1*np.abs(np.min(u_schr_RKVI)), 1.1*np.abs(np.max(u_schr_RKVI)))
+        ax.set_xlabel("x")
+        ax.set_ylabel(r"$\phi(x,t)$")
+        ax.set_title("Animación Schrödinger")
+
+        line_phi_RKII_G,  = ax.plot([], [], label="phi(x,t) - RKII_G")
+        line_phi_RKIII_G,  = ax.plot([], [], label="phi(x,t) - RKIII_G")
+        line_phi_RKIV,  = ax.plot([], [], label="phi(x,t) - RKIV")
+        line_phi_RKVI,  = ax.plot([], [], label="phi(x,t) - RKVI")
+        line_phi_anal,  = ax.plot([], [], label="phi(x,t) - analítica")
+        time_text = ax.text(0.8*L, 0.8*np.max(u_schr_RKVI), '', fontsize=12)
+        ax.legend()
+
+        def update(frame):
+            line_phi_RKII_G.set_data(x, u_schr_RKII_G[frame])
+            line_phi_RKIII_G.set_data(x, u_schr_RKIII_G[frame])
+            line_phi_RKIV.set_data(x, u_schr_RKIV[frame])
+            line_phi_RKVI.set_data(x, u_schr_RKVI[frame])
+            line_phi_anal.set_data(x, u_schr_anal[frame])
+            time_text.set_text(f"t = {np.round(t[frame],2)}s")
+            return line_phi_RKII_G, line_phi_RKIII_G, line_phi_RKIV, line_phi_RKVI, line_phi_anal, time_text
+
+        ani = FuncAnimation(fig, update, frames=range(0,Nt,1), blit=True, interval=1)
+        plt.show()
+    
+    x = np.linspace(0, L, Nx)
+    dx = L/(Nx-1)
+
+    t = np.linspace(0, T, Nt)
+    dt = T/(Nt-1)
+
+    sol_RKII_G, t_RKII_G = timear(RKII_G,(u0_schr, t, schrodinger, params_schr))
+    sol_RKIII_G, t_RKIII_G = timear(RKIII_G,(u0_schr, t, schrodinger, params_schr))
+    sol_RKIV, t_RKIV = timear(RKIV,(u0_schr, t, schrodinger, params_schr))
+    sol_RKVI, t_RKVI = timear(RKVI,(u0_schr, t, schrodinger, params_schr))
+
+    u_schr_RKII_G = np.real(sol_RKII_G[:,:])   # Campo phi
+    u_schr_RKIII_G = np.real(sol_RKIII_G[:,:])   # Campo phi
+    u_schr_RKIV  = np.real(sol_RKIV[:,:])       # Campo phi
+    u_schr_RKVI  = np.real(sol_RKVI[:,:])   # Campo phi
+
+    u_schr_anal = np.zeros((Nt,Nx))
+    for i in range(Nt):
+        u_schr_anal[i,:] = np.sin(n*np.pi*x/L)*np.cos(-((n**2)*(np.pi**2)*t[i])/(2*L**2))
+        
+    def schr_anal(Nt):
+        t = np.linspace(0, T, Nt)
+        u_schr_anal0 = np.zeros((Nt,Nx))
+        for i in range(Nt):
+            u_schr_anal0[i,:] = np.sin(n*np.pi*x/L)*np.cos(-((n**2)*(np.pi**2)*t[i])/(2*L**2))
+        return u_schr_anal0
+        
+    ########################################################################################3
+    # EVOLUCIÓN DEL ERROR
+    ########################################################################################3
+    error2 = error(u_schr_anal, u_schr_RKII_G, dx)
+    error3 = error(u_schr_anal, u_schr_RKIII_G, dx)
+    error4 = error(u_schr_anal, u_schr_RKIV, dx)
+    error6 = error(u_schr_anal, u_schr_RKVI, dx)
+    
+    error2_max = np.max(error2)
+    error3_max = np.max(error3)
+    error4_max = np.max(error4)
+    error6_max = np.max(error6)
+
+    fig,ax = plt.subplots()
+    ax.set_title('Schrödinger: evolución del error')
+    ax.plot(t, error2, label='RKII_G')
+    ax.plot(t, error3, label='RKIII_G')
+    ax.plot(t, error4, label='RKIV')
+    ax.plot(t, error6, label='RKVI')
+    ax.set_xlabel('t')
+    ax.semilogx(), ax.semilogy()
+    ax.legend()
+    plt.show()
+
+    ########################################################################################3
+    # ERROR TIEMPO EJECUCIÓN
+    ########################################################################################3
+    fig, ax = plt.subplots()
+    ax.scatter(t_RKII_G, error2_max, label='RKII_G', marker='x')
+    ax.scatter(t_RKIII_G, error3_max, label='RKIII_G', marker='x')
+    ax.scatter(t_RKIV, error4_max, label='RKIV', marker='x')
+    ax.scatter(t_RKVI, error6_max, label='RKVI', marker='x')
+    ax.set_xlabel('Tiempo de ejecución')
+    ax.set_ylabel('Error máximo')
+    ax.semilogx(), ax.semilogy()
+    ax.set_title('Schrödinger: error en función del tiempo de ejecución')
+    ax.legend()
+    plt.show()
+
+    ########################################################################################3
+    # ERROR DT
+    ########################################################################################3
+    rk2, rk3, rk4, rk6 = [], [], [], []
+    for Nt0 in Nt_vec:
+        u_schr_anal0 = schr_anal(Nt0)
+        rk2.append(np.max(error(u_schr_anal0, np.real(RKII_G(u0_schr, np.linspace(0, T, Nt0), schrodinger, params_schr)), dx)))
+        rk3.append(np.max(error(u_schr_anal0, np.real(RKIII_G(u0_schr, np.linspace(0, T, Nt0), schrodinger, params_schr)), dx)))
+        rk4.append(np.max(error(u_schr_anal0, np.real(RKIV(u0_schr, np.linspace(0, T, Nt0), schrodinger, params_schr)), dx)))
+        rk6.append(np.max(error(u_schr_anal0, np.real(RKVI(u0_schr, np.linspace(0, T, Nt0), schrodinger, params_schr)), dx)))
+    fig, ax = plt.subplots()
+    ax.plot(T/(Nt_vec-1), rk2, label=f'RKII_G')
+    ax.plot(T/(Nt_vec-1), rk3, label=f'RKIII_G')
+    ax.plot(T/(Nt_vec-1), rk4, label=f'RKIV ')
+    ax.plot(T/(Nt_vec-1), rk6, label=f'RKVI')
+    ax.set_xlabel('dt')
+    ax.set_ylabel('Error')
+    ax.set_title('Schrödinger: error en función del dt')
+    ax.legend()
+    plt.show()
+    
+    if anim:
+        animation()
 
 def klein_gordon(t, state, params) -> np.ndarray:
     """
@@ -62,28 +306,38 @@ def klein_gordon(t, state, params) -> np.ndarray:
     d2phi_dt2 = c**2 * d2phi_dx2 - m**2 * phi
 
     return np.array([dphi_dt, d2phi_dt2])
+def klein_gordon_total(L, T, Nx, Nt, u0_kg, params_kg, Nt_vec, anim=True):
+    def animation():
+        fig, ax = plt.subplots()
+        ax.set_xlim(np.min(x), np.max(x))
+        ax.set_ylim(-1.1*np.abs(np.min(du_kg_RKIV)), 1.1*np.abs(np.max(du_kg_RKIV)))
+        ax.set_xlabel("x")
+        ax.set_ylabel(r"$\phi(x,t)$")
+        ax.set_title("Animación Klein-Gordon")
 
-def wave_equation(t, state, params) -> np.ndarray:    
-    """
-    Derivada temporal para la ecuación de onda.
+        line_phi_RKIV,  = ax.plot([], [], label="phi(x,t) - RKIV")
+        line_dphi_RKIV, = ax.plot([], [], label="dphi(x,t)/dt - RKIV")
+        time_text = ax.text(0.8*L, 0.8*np.max(u_kg_RKIV), '', fontsize=12)
+        ax.legend()
+
+        def update(frame):
+            line_phi_RKIV.set_data(x, u_kg_RKIV[frame])
+            line_dphi_RKIV.set_data(x, du_kg_RKIV[frame])
+            time_text.set_text(f"t = {np.round(t[frame],2)}s")
+            return line_phi_RKIV, line_dphi_RKIV, time_text
+
+        ani = FuncAnimation(fig, update, frames=range(0,Nt,25), blit=True, interval=1)
+        plt.show()
+
+    x = np.linspace(0, L, Nx)
+    dx = L/(Nx-1)
+
+    t = np.linspace(0, T, Nt)
+    dt = T/(Nt-1)
     
-    Input:
-    - t: tiempo actual (no se usa en este caso)
-    - state: np.ndarray, [u, v] u es la posición, v es la velocidad
-    - params: tuple (c, dx)
-    
-    Output:
-    - dstate_dt: np.ndarray, [du_dt, dv_dt]
-    """
-    c, dx = params
-    u, v = state
-    d2u_dx2 = np.zeros(len(u))
-    d2u_dx2[1:-1] = (u[2:] - 2 * u[1:-1] + u[:-2]) / dx**2
-    d2u_dx2[0] = d2u_dx2[-1] = 0  # Dirichlet
+    sol_RKIV = RKIV(u0_kg, t, klein_gordon, params_kg)
+    u_kg_RKIV  = sol_RKIV[:,0,:] # Campo phi
+    du_kg_RKIV = sol_RKIV[:,1,:] # Velocidad dphi/dt
 
-    du_dt = v
-    dv_dt = c**2 * d2u_dx2
-
-    dstate_dt = np.array([du_dt, dv_dt])
-    return dstate_dt
-
+    if anim:
+        animation()
