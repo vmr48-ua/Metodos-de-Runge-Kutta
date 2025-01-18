@@ -25,6 +25,7 @@ def timear(funcion, param):
     t1 = time.perf_counter()
     return [sol, (np.abs(t1-t0))]
 
+
 def RKII_G(r0, t, drdt, param, p = 1/2) -> np.ndarray:
     '''
     Función que implementa el método de Runge-Kuta 2, genérico

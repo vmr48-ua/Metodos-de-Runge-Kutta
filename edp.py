@@ -1,11 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from numpy import pi, exp, sin, cos
-from matplotlib.animation import FuncAnimation
+from matplotlib.animation import FuncAnimation, FFMpegWriter
 
-# Locales
 from runge_kutta import *
-from edp import *
 
 def diffusion(t, u, params) -> np.ndarray:
     """
@@ -28,10 +26,9 @@ def diffusion(t, u, params) -> np.ndarray:
     return du_dt
 def diffusion_total(L, T, Nx, Nt, D, u0_diff, params_diff, Nt_vec, anim=True):
     def animation():
-        fig, ax = plt.subplots(figsize=(7, 7))
-        plt.tight_layout()
-        line_RKII_G, = ax.plot(x, u_diff_RKII_G[0], label='RKIIG')
-        line_RKIII_G, = ax.plot(x, u_diff_RKIII_G[0], label='RKIIIG')
+        fig, ax = plt.subplots(figsize=(8, 4))
+        line_RKII_G, = ax.plot(x, u_diff_RKII_G[0], label='RKII')
+        line_RKIII_G, = ax.plot(x, u_diff_RKIII_G[0], label='RKIII')
         line_RKIV, = ax.plot(x, u_diff_RKIV[0], label='RKIV')
         line_RKVI, = ax.plot(x, u_diff_RKVI[0], label='RKVI')
         line_anal, = ax.plot(x, u_diff_anal[0], label='Analítica')
@@ -52,6 +49,9 @@ def diffusion_total(L, T, Nx, Nt, D, u0_diff, params_diff, Nt_vec, anim=True):
             return line_RKII_G, line_RKIII_G, line_RKIV, line_RKVI, line_anal, time_text
 
         ani = FuncAnimation(fig, update, frames=range(0,Nt,10), blit=True, interval=1)
+        writervideo = FFMpegWriter(fps=120) 
+        # ani.save('difusion.gif', writer=writervideo, savefig_kwargs=dict(facecolor='#f1f1f1')) 
+        
         plt.show()
     
     x = np.linspace(0, L, Nx)
@@ -167,20 +167,20 @@ def schrodinger(t, psi, params) -> np.ndarray:
     return dpsi_dt
 def schrodinger_total(L, T, Nx, Nt, n, u0_schr, params_schr, Nt_vec, anim=True):
     def animation():
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(8, 4))
         ax.set_xlim(np.min(x), np.max(x))
         ax.set_ylim(-1.1*np.abs(np.min(u_schr_RKVI)), 1.1*np.abs(np.max(u_schr_RKVI)))
         ax.set_xlabel("x")
         ax.set_ylabel(r"$\phi(x,t)$")
         ax.set_title("Animación Schrödinger")
 
-        line_phi_RKII_G,  = ax.plot([], [], label="phi(x,t) - RKII_G")
-        line_phi_RKIII_G,  = ax.plot([], [], label="phi(x,t) - RKIII_G")
-        line_phi_RKIV,  = ax.plot([], [], label="phi(x,t) - RKIV")
-        line_phi_RKVI,  = ax.plot([], [], label="phi(x,t) - RKVI")
-        line_phi_anal,  = ax.plot([], [], label="phi(x,t) - analítica")
+        line_phi_RKII_G,  = ax.plot([], [], label="$\phi(x,t)$ - RKII")
+        line_phi_RKIII_G,  = ax.plot([], [], label="$\phi(x,t)$ - RKIII")
+        line_phi_RKIV,  = ax.plot([], [], label="$\phi(x,t)$ - RKIV")
+        line_phi_RKVI,  = ax.plot([], [], label="$\phi(x,t)$ - RKVI")
+        line_phi_anal,  = ax.plot([], [], label="$\phi(x,t)$ - analítica")
         time_text = ax.text(0.8*L, 0.8*np.max(u_schr_RKVI), '', fontsize=12)
-        ax.legend()
+        ax.legend(loc='upper left')
 
         def update(frame):
             line_phi_RKII_G.set_data(x, u_schr_RKII_G[frame])
@@ -191,7 +191,9 @@ def schrodinger_total(L, T, Nx, Nt, n, u0_schr, params_schr, Nt_vec, anim=True):
             time_text.set_text(f"t = {np.round(t[frame],2)}s")
             return line_phi_RKII_G, line_phi_RKIII_G, line_phi_RKIV, line_phi_RKVI, line_phi_anal, time_text
 
-        ani = FuncAnimation(fig, update, frames=range(0,Nt,1), blit=True, interval=1)
+        ani = FuncAnimation(fig, update, frames=range(0,Nt,5), blit=True, interval=1)
+        writervideo = FFMpegWriter(fps=120) 
+        # ani.save('schrodinger.gif', writer=writervideo, savefig_kwargs=dict(facecolor='#f1f1f1')) 
         plt.show()
     
     x = np.linspace(0, L, Nx)
@@ -308,25 +310,47 @@ def klein_gordon(t, state, params) -> np.ndarray:
     return np.array([dphi_dt, d2phi_dt2])
 def klein_gordon_total(L, T, Nx, Nt, u0_kg, params_kg, Nt_vec, anim=True):
     def animation():
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(8, 4))
         ax.set_xlim(np.min(x), np.max(x))
         ax.set_ylim(-1.1*np.abs(np.min(du_kg_RKIV)), 1.1*np.abs(np.max(du_kg_RKIV)))
         ax.set_xlabel("x")
         ax.set_ylabel(r"$\phi(x,t)$")
         ax.set_title("Animación Klein-Gordon")
 
-        line_phi_RKIV,  = ax.plot([], [], label="phi(x,t) - RKIV")
-        line_dphi_RKIV, = ax.plot([], [], label="dphi(x,t)/dt - RKIV")
-        time_text = ax.text(0.8*L, 0.8*np.max(u_kg_RKIV), '', fontsize=12)
-        ax.legend()
+        line_phi_RKII_G,  = ax.plot([], [], label="$\phi(x,t)$ - RKII")
+        line_dphi_RKII_G, = ax.plot([], [], label="$\dfrac{d\phi}{dt}(x,t)$ - RKII")
+        
+        line_phi_RKIII_G,  = ax.plot([], [], label="$\phi(x,t)$ - RKIII")
+        line_dphi_RKIII_G, = ax.plot([], [], label="$\dfrac{d\phi}{dt}(x,t)$ - RKIII")
+
+        line_phi_RKIV,  = ax.plot([], [], label="$\phi(x,t)$ - RKIV")
+        line_dphi_RKIV, = ax.plot([], [], label="$\dfrac{d\phi}{dt}(x,t)$ - RKIV")
+        
+        line_phi_RKVI,  = ax.plot([], [], label="$\phi(x,t)$ - RKVI")
+        line_dphi_RKVI, = ax.plot([], [], label="$\dfrac{d\phi}{dt}(x,t)$ - RKVI")
+        
+        time_text = ax.text(0.8*L, 0.77*np.max(u_kg_RKIV), '', fontsize=12)
+        ax.legend(loc='lower center', ncol=4)
 
         def update(frame):
+            line_phi_RKII_G.set_data(x, u_kg_RKII_G[frame])
+            line_dphi_RKII_G.set_data(x, du_kg_RKII_G[frame])
+            
+            line_phi_RKIII_G.set_data(x, u_kg_RKIII_G[frame])
+            line_dphi_RKIII_G.set_data(x, du_kg_RKIII_G[frame])
+            
             line_phi_RKIV.set_data(x, u_kg_RKIV[frame])
             line_dphi_RKIV.set_data(x, du_kg_RKIV[frame])
+            
+            line_phi_RKVI.set_data(x, u_kg_RKVI[frame])
+            line_dphi_RKVI.set_data(x, du_kg_RKVI[frame])
+            
             time_text.set_text(f"t = {np.round(t[frame],2)}s")
-            return line_phi_RKIV, line_dphi_RKIV, time_text
+            return line_phi_RKII_G, line_dphi_RKII_G, line_phi_RKIII_G, line_dphi_RKIII_G, line_phi_RKIV, line_dphi_RKIV, line_phi_RKVI, line_dphi_RKVI, time_text
 
         ani = FuncAnimation(fig, update, frames=range(0,Nt,25), blit=True, interval=1)
+        writervideo = FFMpegWriter(fps=120) 
+        # ani.save('klein_gordon.gif', writer=writervideo, savefig_kwargs=dict(facecolor='#f1f1f1')) 
         plt.show()
 
     x = np.linspace(0, L, Nx)
@@ -335,9 +359,21 @@ def klein_gordon_total(L, T, Nx, Nt, u0_kg, params_kg, Nt_vec, anim=True):
     t = np.linspace(0, T, Nt)
     dt = T/(Nt-1)
     
+    sol_RKII_G = RKII_G(u0_kg, t, klein_gordon, params_kg)
+    u_kg_RKII_G  = sol_RKII_G[:,0,:] # Campo phi
+    du_kg_RKII_G = sol_RKII_G[:,1,:] # Velocidad dphi/dt
+    
+    sol_RKIII_G = RKIII_G(u0_kg, t, klein_gordon, params_kg)
+    u_kg_RKIII_G  = sol_RKIII_G[:,0,:] # Campo phi
+    du_kg_RKIII_G = sol_RKIII_G[:,1,:] # Velocidad dphi/dt
+    
     sol_RKIV = RKIV(u0_kg, t, klein_gordon, params_kg)
     u_kg_RKIV  = sol_RKIV[:,0,:] # Campo phi
     du_kg_RKIV = sol_RKIV[:,1,:] # Velocidad dphi/dt
+    
+    sol_RKVI = RKVI(u0_kg, t, klein_gordon, params_kg)
+    u_kg_RKVI  = sol_RKVI[:,0,:] # Campo phi
+    du_kg_RKVI = sol_RKVI[:,1,:] # Velocidad dphi/dt
 
     if anim:
         animation()
