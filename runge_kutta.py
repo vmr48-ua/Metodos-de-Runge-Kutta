@@ -1,4 +1,6 @@
 import numpy as np
+import time
+import numpy.linalg as la
 
 def progress(i, N) -> None:
     '''
@@ -10,6 +12,18 @@ def progress(i, N) -> None:
     '''
     print(f'\rProgreso: {100*i/N:.2f}%', end='')
     return None
+
+def error(psi_analitica, psi_numerica, dx):
+    return la.norm(psi_analitica - psi_numerica,axis=1)*dx
+
+def timear(funcion, param):
+    """ 
+    Devuelve el tiempo que tarda en ejecutarse una función
+    """
+    t0 = time.perf_counter()
+    sol = funcion(*param)
+    t1 = time.perf_counter()
+    return [sol, (np.abs(t1-t0))]
 
 def RKII_G(r0, t, drdt, param, p = 1/2) -> np.ndarray:
     '''
@@ -25,13 +39,9 @@ def RKII_G(r0, t, drdt, param, p = 1/2) -> np.ndarray:
     Output:
     - r: np.ndarray
     '''
-    
-    import numpy as np
-
     if p == 0:
         raise ValueError('Incorrect value of p, p=0')
 
-    
     a1 = 1- p
     a2 = p
     
@@ -41,7 +51,6 @@ def RKII_G(r0, t, drdt, param, p = 1/2) -> np.ndarray:
     N = len(t)
 
     r = np.zeros((N, *r0.shape), dtype=np.complex128 if np.iscomplexobj(r0) else np.float64)
-
     r[0,:] = r0
     
     for i in range(N-1):
@@ -49,8 +58,6 @@ def RKII_G(r0, t, drdt, param, p = 1/2) -> np.ndarray:
         k1 = dt*drdt(t[i],r[i],param)
         k2 = dt*drdt(t[i] + c*dt,r[i] + c*k1,param)
         r[i+1] = r[i] + a1*k1 + a2*k2
-    
-        
     return r
 
 def RKIII_G(r0, t, drdt, param, a = 1/2 ,b = 1) -> np.ndarray:
@@ -68,9 +75,6 @@ def RKIII_G(r0, t, drdt, param, a = 1/2 ,b = 1) -> np.ndarray:
     Output:
     - r: np.ndarray
     '''
-    
-    import numpy as np
-
     if a == 0 or a == 2/3 or b == 0 or a == b:
         raise ValueError('Incorrect value of a or b')
 
@@ -84,10 +88,13 @@ def RKIII_G(r0, t, drdt, param, a = 1/2 ,b = 1) -> np.ndarray:
     for i in range(N-1):
         progress(i,N-1)
         k1 = dt*drdt(t[i],r[i],param)
-        k2 = dt*drdt(t[i] + a*dt,r[i] + a*k1,param)
-        k3 = dt*drdt(t[i] + b*dt,r[i] + ((b*(b-3*a*(1-a)))/(a*(3*a-2)))*k1 + ((-b*(b-a))/(a*(3*a-2)))*k2,param)
-        r[i+1] = r[i] + (1-(3*a+3*b -2 )/(6*a*b))*k1 + ((3*b-1)/(6*a*(b-a)))*k2 + ((2-3*a)/(6*b*(b-a)))*k3
-    
+        
+        # k2 = dt*drdt(t[i] + a*dt,r[i] + a*k1,param)
+        # k3 = dt*drdt(t[i] + b*dt,r[i] + ((b*(b-3*a*(1-a)))/(a*(3*a-2)))*k1 + ((-b*(b-a))/(a*(3*a-2)))*k2,param)
+        # r[i+1] = r[i] + (1-(3*a+3*b -2 )/(6*a*b))*k1 + ((3*b-1)/(6*a*(b-a)))*k2 + ((2-3*a)/(6*b*(b-a)))*k3
+        k2 = dt*drdt(t[i] + 0.5*dt,r[i] + 0.5*k1,param)
+        k3 = dt*drdt(t[i] + 1*dt,r[i] + (-1)*k1 + (2)*k2,param)
+        r[i+1] = r[i] + (1/6)*k1 + (2/3)*k2 + (1/6)*k3
     return r
 
 def RKIV(r0, t, drdt, param) -> np.ndarray:

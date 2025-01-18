@@ -25,7 +25,7 @@ c = 1.        # Velocidad de la onda
 m = 1.        # Masa del campo
 D = 1.        # Coeficiente de difusión
 
-n = 2         #Parametro de la condicion inicial
+n = 2.        #Parametro de la condicion inicial
 
 x = np.linspace(0, L, Nx)
 t = np.linspace(0, T, Nt)
@@ -48,21 +48,21 @@ u0_schr = np.sin(n*np.pi*x/L)  + 0j      # Seno con n+1 nodos
 # SCHRODINGER #
 ################
 
-sol_RKII_G = RKII_G(u0_schr, t, schrodinger, params_schr)
+sol_RKIII_G = RKIII_G(u0_schr, t, schrodinger, params_schr)
 
 
 
-u_schr_RKII_G  = np.real(sol_RKII_G[:,:])    # Campo phi
+u_schr_RKIII_G  = np.real(sol_RKIII_G[:,:])    # Campo phi
 
 
 u_schr_anal = np.zeros((Nt,Nx))
 for i in range(Nt):
     u_schr_anal[i,:] = np.sin(n*np.pi*x[:]/L)*np.cos(-((n**2)*(np.pi**2)*t[i])/(2*L**2))
 
-error2 = error_schr(u_schr_anal, u_schr_RKII_G, dx)
+error2 = error_schr(u_schr_anal, u_schr_RKIII_G, dx)
 
 plt.figure()
-plt.plot(t, error2, label='error RKII_G')
+plt.plot(t, error2, label='error RKIII_G')
 plt.legend()
 plt.show()
 
@@ -75,24 +75,24 @@ plt.show()
 
 fig, ax = plt.subplots()
 ax.set_xlim(np.min(x), np.max(x))
-ax.set_ylim(-1.1*np.abs(np.min(u_schr_RKII_G)), 1.1*np.abs(np.max(u_schr_RKII_G)))
+ax.set_ylim(-1.1*np.abs(np.min(u_schr_RKIII_G)), 1.1*np.abs(np.max(u_schr_RKIII_G)))
 ax.set_xlabel("x")
 ax.set_ylabel(r"$\phi(x,t)$")
 ax.set_title("Evolución de Schrodinger $\\phi(x, t)$")
 
-line_phi_RKII_G,  = ax.plot([], [], label="phi(x,t) - RKII_G")
+line_phi_RKIII_G,  = ax.plot([], [], label="phi(x,t) - RKIII_G")
 
 
 line_phi_anal,  = ax.plot([], [], label="phi(x,t) - analítica")
-time_text = ax.text(0.8*L, 0.8*np.max(u_schr_RKII_G), '', fontsize=12)
+time_text = ax.text(0.8*L, 0.8*np.max(u_schr_RKIII_G), '', fontsize=12)
 ax.legend()
 
 def update(frame):
-    line_phi_RKII_G.set_data(x, u_schr_RKII_G[frame])
+    line_phi_RKIII_G.set_data(x, u_schr_RKIII_G[frame])
 
     line_phi_anal.set_data(x, u_schr_anal[frame])
     time_text.set_text(f"t = {np.round(t[frame],2)}s")
-    return line_phi_RKII_G, line_phi_anal, time_text
+    return line_phi_RKIII_G, line_phi_anal, time_text
 
 ani = FuncAnimation(fig, update, frames=range(0,Nt,5), blit=True, interval=1)
 plt.show()
