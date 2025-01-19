@@ -243,7 +243,7 @@ def schrodinger_total(L, T, Nx, Nt, n, u0_schr, params_schr, Nt_vec, anim=True):
     ax.plot(t, error4, label='RKIV')
     ax.plot(t, error6, label='RKVI')
     ax.set_xlabel('t')
-    ax.semilogx(), ax.semilogy()
+    ax.semilogy()
     ax.legend()
     plt.show()
 
