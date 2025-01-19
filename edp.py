@@ -109,7 +109,7 @@ def diffusion_total(L, T, Nx, Nt, D, u0_diff, params_diff, Nt_vec, anim=True):
     ########################################################################################3
     # EVOLUCIÓN TIEMPO EJECUCIÓN
     ########################################################################################3
-    fig, ax = plt.subplots(ffacecolor='#f1f1f1',figsize=(8, 4))
+    fig, ax = plt.subplots(facecolor='#f1f1f1',figsize=(8, 4))
     ax.scatter(t_RKII_G, error2_max, label='RKII_G', marker='x')
     ax.scatter(t_RKIII_G, error3_max, label='RKIII_G', marker='x')
     ax.scatter(t_RKIV, error4_max, label='RKIV', marker='x')
