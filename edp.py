@@ -93,7 +93,7 @@ def diffusion_total(L, T, Nx, Nt, D, u0_diff, params_diff, Nt_vec, anim=True):
     error4_max = np.max(error4)
     error6_max = np.max(error6)
 
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(facecolor='#f1f1f1',figsize=(8, 4))
     ax.plot(t[1:], error2, label='RKII_G')
     ax.plot(t[1:], error3, label='RKIII_G')
     ax.plot(t[1:], error4, label='RKIV')
@@ -109,7 +109,7 @@ def diffusion_total(L, T, Nx, Nt, D, u0_diff, params_diff, Nt_vec, anim=True):
     ########################################################################################3
     # EVOLUCIÓN TIEMPO EJECUCIÓN
     ########################################################################################3
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(ffacecolor='#f1f1f1',figsize=(8, 4))
     ax.scatter(t_RKII_G, error2_max, label='RKII_G', marker='x')
     ax.scatter(t_RKIII_G, error3_max, label='RKIII_G', marker='x')
     ax.scatter(t_RKIV, error4_max, label='RKIV', marker='x')
@@ -131,7 +131,7 @@ def diffusion_total(L, T, Nx, Nt, D, u0_diff, params_diff, Nt_vec, anim=True):
         rk3.append(np.max(error(u_diff_anal0, RKIII_G(u0_diff, np.linspace(0, T, Nt0), diffusion, params_diff), dx)))
         rk4.append(np.max(error(u_diff_anal0, RKIV(u0_diff, np.linspace(0, T, Nt0), diffusion, params_diff), dx)))
         rk6.append(np.max(error(u_diff_anal0, RKVI(u0_diff, np.linspace(0, T, Nt0), diffusion, params_diff), dx)))
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(facecolor='#f1f1f1',figsize=(8, 4))
     ax.plot(T/(Nt_vec-1), rk2, label=f'RKII_G')
     ax.plot(T/(Nt_vec-1), rk3, label=f'RKIII_G')
     ax.plot(T/(Nt_vec-1), rk4, label=f'RKIV ')
@@ -236,7 +236,7 @@ def schrodinger_total(L, T, Nx, Nt, n, u0_schr, params_schr, Nt_vec, anim=True):
     error4_max = np.max(error4)
     error6_max = np.max(error6)
 
-    fig,ax = plt.subplots()
+    fig,ax = plt.subplots(facecolor='#f1f1f1',figsize=(8, 4))
     ax.set_title('Schrödinger: evolución del error')
     ax.plot(t, error2, label='RKII_G')
     ax.plot(t, error3, label='RKIII_G')
@@ -250,7 +250,7 @@ def schrodinger_total(L, T, Nx, Nt, n, u0_schr, params_schr, Nt_vec, anim=True):
     ########################################################################################3
     # ERROR TIEMPO EJECUCIÓN
     ########################################################################################3
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(facecolor='#f1f1f1',figsize=(8, 4))
     ax.scatter(t_RKII_G, error2_max, label='RKII_G', marker='x')
     ax.scatter(t_RKIII_G, error3_max, label='RKIII_G', marker='x')
     ax.scatter(t_RKIV, error4_max, label='RKIV', marker='x')
@@ -272,7 +272,7 @@ def schrodinger_total(L, T, Nx, Nt, n, u0_schr, params_schr, Nt_vec, anim=True):
         rk3.append(np.max(error(u_schr_anal0, np.real(RKIII_G(u0_schr, np.linspace(0, T, Nt0), schrodinger, params_schr)), dx)))
         rk4.append(np.max(error(u_schr_anal0, np.real(RKIV(u0_schr, np.linspace(0, T, Nt0), schrodinger, params_schr)), dx)))
         rk6.append(np.max(error(u_schr_anal0, np.real(RKVI(u0_schr, np.linspace(0, T, Nt0), schrodinger, params_schr)), dx)))
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(facecolor='#f1f1f1',figsize=(8, 4))
     ax.plot(T/(Nt_vec-1), rk2, label=f'RKII_G')
     ax.plot(T/(Nt_vec-1), rk3, label=f'RKIII_G')
     ax.plot(T/(Nt_vec-1), rk4, label=f'RKIV ')
@@ -302,7 +302,7 @@ def klein_gordon(t, state, params) -> np.ndarray:
     phi, dphi_dt = state
     d2phi_dx2 = np.zeros(len(phi))
     d2phi_dx2[1:-1] = (phi[2:] - 2 * phi[1:-1] + phi[:-2]) / dx**2
-    d2phi_dx2[0] = d2phi_dx2[-1] = 0  # Dirichlet
+    d2phi_dx2[0] = d2phi_dx2[-1] = 0
 
     dphi_dt = dphi_dt
     d2phi_dt2 = c**2 * d2phi_dx2 - m**2 * phi
